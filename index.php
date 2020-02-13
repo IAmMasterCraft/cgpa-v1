@@ -1,0 +1,402 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <script src="jQuery/jQuery-2.1.4.min.js"></script>
+    <title>CGPA Calculator</title>
+</head>
+<style>
+    input {
+        border: none;
+        width: 100%;
+    }
+
+    .animated-text {
+        animation: text 10s steps(70) infinite, cursor 0.3s infinite alternate;
+        overflow: hidden;
+        white-space: nowrap;
+        border-right: 3px solid black;
+        padding-right: 10px;
+    }
+
+    @keyframes text {
+        from {
+            width: 0;
+        }
+
+        to {
+            width: 79.5rem;
+        }
+    }
+
+    @keyframes cursor {
+        from {
+            border-color: transparent;
+            padding-right: 10px;
+        }
+
+        to {
+            border-color: black;
+            padding-right: 10px;
+        }
+    }
+
+    /* body {
+        background-color: black;
+    }
+
+    h1 {
+        color: white;
+        display: flex;
+        padding-right: -25%;
+    } */
+</style>
+
+<body>
+    <div class="container-fluid">
+        <header class="text-center">
+            <h1>CGPA Calculator <span style="color: red;">v1.0</span></h1>
+            <h3 class="animated-text">This is based on the 5.0 grading system courtesy: @BriefSturvesInitiative </h3>
+        </header>
+        <div class="table-responsive">
+            <form>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>COURSE CODE</th>
+                        <th>UNIT(S)</th>
+                        <th>GRADE</th>
+                    </tr>
+                </thead>
+                <tfoot>
+                    <tr>
+                        <th>#</th>
+                        <th>COURSE CODE</th>
+                        <th>UNIT(S)</th>
+                        <th>GRADE</th>
+                    </tr>
+                </tfoot>
+                <tbody id="table-body">
+                    <tr id="row-1">
+                        <td class="row-num">1</td>
+                        <td><input type="text" class="course-1" name="course-1" value="" placeholder="Enter your course code here" oninput=""></td>
+                        <td><input type="number" class="unit-1" name="unit-1" value="" placeholder="Enter your course unit(s) here" oninput="newUnit(1)"></td>
+                        <td><input type="text" class="grade-1" name="grade-1" value="" placeholder="Enter your course grade here" oninput="newGrade(1)"></td>
+                    </tr>
+                </tbody>
+            </table>
+            </div>
+        <div class="row">
+            <div class="col-md-6">
+                <span id="add-row" class="btn btn-success btn-xs"><b> + ADD ROW </b></span> 
+                <small><h6>Click to add 1 row for course/unit/grade</h6></small>
+            </div>
+            <div class="col-md-6">
+                <span id="remove-row" class="btn btn-warning btn-xs"><b> - REMOVE ROW </b></span> 
+                <small><h6>Click to remove last row for course/unit/grade</h6></small>
+            </div>
+        </div>
+        <br>
+        <hr>
+        <button id="" class="btn btn-danger" type="reset">Reset</button>
+        <calc id="calculate" class="btn btn-info"> Calculate </calc>
+</form>
+        
+        <result></result>
+    </div>
+
+    <form enctype="multipart/form-data" action="v2.php" method="POST" >
+        <label>Upload Result</label>
+        <input type="file" name="res">
+        <button id="" class="btn btn-danger" type="submit">SUBMIT</button>
+    </form>
+</body>
+<footer class="text-center">
+    <small>&copy; 2020</small>
+</footer>
+
+<script>
+    let courseList = [];
+    let unitList = [];
+    let gradeList = [];
+    let gradePerUnit = [];
+    // $("document").ready(console.log(rowNumber));
+    // add row
+    $("#add-row").click(function() {
+        let rowNumber = parseInt($("tbody tr:last-child").text());
+        // build  append
+        var nextRow = rowNumber;
+        rowNumber++;
+        let tableRow = '<td>' + rowNumber + '</td>';
+        tableRow += '<td><input type="text" class="course-' + rowNumber + '" name="course-' + rowNumber + '" value="" placeholder="Enter your course code here" oninput=""></td>';
+        tableRow += '<td><input type="number" class="unit-' + rowNumber + '" name="unit-' + rowNumber + '" value="" placeholder="Enter your course unit(s) here" oninput="newUnit(' + rowNumber + ')"></td>';
+        tableRow += '<td><input type="text" class="grade-' + rowNumber + '" name="grade-' + rowNumber + '" value="" placeholder="Enter your course grade here" oninput="newGrade(' + rowNumber + ')"></td>';
+        var buildRow = $('<tr id="row-' + rowNumber + '"></tr>').html(tableRow);
+        $('#row-' + nextRow).after(buildRow);
+    })
+    $("#remove-row").click(function() {
+        // console.log($("tr#row-" + $("tbody tr:last-child").text() + " td:last-child"));
+        // console.log($("td").attr());
+        if ($("#table-body").children().length <= 1) {
+            // console.log
+            alert("you must have at least 1 row!")
+        } else {
+            $("tbody tr:last-child").remove();
+        }
+    })
+
+    $("#reset").click(function() {
+        let rowNumber = parseInt($("tbody tr:last-child").text());
+        $("table tbody:last-child").remove();
+        for (let i = 1; i <= rowNumber; i++) {
+            let tableRow = '<tr id="row-' + i + '"><td>' + i + '</td>';
+            tableRow += '<td><input type="text" class="course-' + i + '" name="course-' + i + '" value="" placeholder="Enter your course code here" oninput=""></td>';
+            tableRow += '<td><input type="number" class="unit-' + i + '" name="unit-' + i + '" value="" placeholder="Enter your course unit(s) here" oninput="newUnit(' + i + ')"></td>';
+            tableRow += '<td><input type="text" class="grade-' + i + '" name="grade-' + i + '" value="" placeholder="Enter your course grade here" oninput="newGrade(' + i + ')"></td></tr>';
+            var buildRow = $('<tbody id="table-body"></tbody>').html(tableRow);
+            $("tfoot").before(buildRow);
+        }
+    })
+
+    $("#calculate").click(function() {
+        let rowNumber = parseInt($("tbody tr:last-child").text());
+        let totalCreditUnit = 0;
+        let totalGpu = 0;
+        for (let i = 1; i <= rowNumber; i++) {
+            //calculate totalCreditUnit
+            totalCreditUnit += parseInt($(".unit-" + i).val());
+
+            //calculate gradeList
+            if ($(".grade-" + i).val() == "A" || $(".grade-" + i).val() == "a") {
+                gradeList[i] = ($(".unit-" + i).val()) * 5;
+            }
+            if ($(".grade-" + i).val() == "B" || $(".grade-" + i).val() == "b") {
+                gradeList[i] = ($(".unit-" + i).val()) * 4;
+            }
+            if ($(".grade-" + i).val() == "C" || $(".grade-" + i).val() == "c") {
+                gradeList[i] = ($(".unit-" + i).val()) * 3;
+            }
+            if ($(".grade-" + i).val() == "D" || $(".grade-" + i).val() == "d") {
+                gradeList[i] = ($(".unit-" + i).val()) * 2;
+            }
+            if ($(".grade-" + i).val() == "E" || $(".grade-" + i).val() == "e") {
+                gradeList[i] = ($(".unit-" + i).val()) * 1;
+            }
+            if ($(".grade-" + i).val() == "F" || $(".grade-" + i).val() == "f") {
+                gradeList[i] = ($(".unit-" + i).val()) * 0;
+            }
+        }
+
+        //sum up gradeList
+        for (let i = 1; i <= rowNumber; i++) {
+            totalGpu += gradeList[i];
+        }
+        // console.log(totalCreditUnit)
+        // console.log(gradeList)
+        // console.log(totalGpu)
+        var cgpa = parseFloat(totalGpu / totalCreditUnit)
+        $("result h1:last-child").remove();
+        var results = "<h1>Your <b>CGPA = " + cgpa + "</b> <br>";
+        if (cgpa <= 5.0 && cgpa >= 4.50) {
+            results += "First Class Honours";
+        }
+        if (cgpa <= 4.49 && cgpa >= 3.50) {
+            results += "Second Class Honours (Upper Division)";
+        }
+        if (cgpa <= 3.49 && cgpa >= 2.40) {
+            results += "Second Class Honours (Lower Division)";
+        }
+        if (cgpa <= 2.39 && cgpa >= 1.50) {
+            results += "Third Class Honours";
+        }
+        if (cgpa <= 1.49 && cgpa >= 1.0) {
+            results += "PASS";
+        }
+        results += "</h1>";
+        var display = $("<result></result>").html(results);
+        $("result").after(display);
+    })
+
+    function newUnit(rowNumber) {
+        if ($(".unit-" + rowNumber).val() > 5) {
+            alert($(".unit-" + rowNumber).val() + " Credit unit input for " + $(".course-" + rowNumber).val() + " in line " + rowNumber + " is invalid and will be diregarded unless you edit it with appropriate credit unit");
+        }
+    }
+
+    function newGrade(rowNumber) {
+        if (
+            $(".grade-" + rowNumber).val() == "A" ||
+            $(".grade-" + rowNumber).val() == "a" ||
+            $(".grade-" + rowNumber).val() == "B" ||
+            $(".grade-" + rowNumber).val() == "b" ||
+            $(".grade-" + rowNumber).val() == "C" ||
+            $(".grade-" + rowNumber).val() == "c" ||
+            $(".grade-" + rowNumber).val() == "D" ||
+            $(".grade-" + rowNumber).val() == "d" ||
+            $(".grade-" + rowNumber).val() == "E" ||
+            $(".grade-" + rowNumber).val() == "e" ||
+            $(".grade-" + rowNumber).val() == "F" ||
+            $(".grade-" + rowNumber).val() == "f" ||
+            $(".grade-" + rowNumber).val() == ""
+        ) {
+
+        } else alert($(".grade-" + rowNumber).val() + " input for " + $(".course-" + rowNumber).val() + " in line " + rowNumber + " is invalid and will be diregarded unless you edit it with appropriate grade");
+    }
+    /*
+        function cgpaCalc(rowNumber) {
+            // total grade per unit
+            if ($(".grade-" + rowNumber).val() == "A" || $(".grade-" + rowNumber).val() == "a") {
+                gradeList["unit-" + rowNumber] = ($(".unit-" + rowNumber).val()) * 5;
+            }
+            if ($(".grade-" + rowNumber).val() == "B" || $(".grade-" + rowNumber).val() == "b") {
+                gradeList["unit-" + rowNumber] = ($(".unit-" + rowNumber).val()) * 4;
+            }
+            if ($(".grade-" + rowNumber).val() == "C" || $(".grade-" + rowNumber).val() == "c") {
+                gradeList["unit-" + rowNumber] = ($(".unit-" + rowNumber).val()) * 3;
+            }
+            if ($(".grade-" + rowNumber).val() == "D" || $(".grade-" + rowNumber).val() == "d") {
+                gradeList["unit-" + rowNumber] = ($(".unit-" + rowNumber).val()) * 2;
+            }
+            if ($(".grade-" + rowNumber).val() == "E" || $(".grade-" + rowNumber).val() == "e") {
+                gradeList["unit-" + rowNumber] = ($(".unit-" + rowNumber).val()) * 1;
+            }
+            if ($(".grade-" + rowNumber).val() == "F" || $(".grade-" + rowNumber).val() == "f") {
+                gradeList["unit-" + rowNumber] = ($(".unit-" + rowNumber).val()) * 0;
+            }
+        }
+            // function to append to list items
+            function newCourse(rowNumber) {
+                courseList['course-' + rowNumber] = $(".course-" + rowNumber).val();
+                // console.log(courseList['course-1']);
+                // for (let i = 1; i <= $("tbody tr:last-child").text(); i++) {
+                //     // console.log($(".course-"+rowNumber).val());
+                // }
+            }
+
+            function newUnit(rowNumber) {
+                if ($(".unit-" + rowNumber).val() > 0 && $(".unit-" + rowNumber).val() < 6) {
+                    unitList['unit-' + rowNumber] = $(".unit-" + rowNumber).val();
+                } else alert($(".unit-" + rowNumber).val() + " Credit unit input for " + $(".course-" + rowNumber).val() + " in line " + rowNumber + " is invalid and will be diregarded unless you edit it with appropriate credit unit");
+            }
+
+            function newGrade(rowNumber) {
+                if (
+                    $(".grade-" + rowNumber).val() == "A" ||
+                    $(".grade-" + rowNumber).val() == "a" ||
+                    $(".grade-" + rowNumber).val() == "B" ||
+                    $(".grade-" + rowNumber).val() == "b" ||
+                    $(".grade-" + rowNumber).val() == "C" ||
+                    $(".grade-" + rowNumber).val() == "c" ||
+                    $(".grade-" + rowNumber).val() == "D" ||
+                    $(".grade-" + rowNumber).val() == "d" ||
+                    $(".grade-" + rowNumber).val() == "E" ||
+                    $(".grade-" + rowNumber).val() == "e" ||
+                    $(".grade-" + rowNumber).val() == "F" ||
+                    $(".grade-" + rowNumber).val() == "f"
+                ) {
+                    gradeList['grade-' + rowNumber] = $(".grade-" + rowNumber).val();
+                } else alert($(".grade-" + rowNumber).val() + " input for " + $(".course-" + rowNumber).val() + " in line " + rowNumber + " is invalid and will be diregarded unless you edit it with appropriate grade");
+            }
+
+            function gradePerUnitCalc(unitList, gradeList) {
+                for (let i = 1; i <= $("tbody tr:last-child").text(); i++) {
+                    // console.log($(".course-" + rowNumber).val());
+                    if (gradeList[i] == "A" || gradeList[i] == "a") {
+                        gradePerUnit[i] = parseInt(unitList['unit-' + i]) * 5;
+                        console.log("gradePerUnit[i]");
+                    }
+                    if (gradeList[i] == "B" || gradeList[i] == "b") {
+                        gradePerUnit[i] = parseInt(unitList['unit-' + i]) * 4;
+                        console.log(gradePerUnit[i]);
+                    }
+                    if (gradeList[i] == "C" || gradeList[i] == "c") {
+                        gradePerUnit[i] = parseInt(unitList['unit-' + i]) * 3;
+                        console.log(gradePerUnit[i]);
+                    }
+                    if (gradeList[i] == "D" || gradeList[i] == "d") {
+                        gradePerUnit[i] = parseInt(unitList['unit-' + i]) * 2;
+                        console.log(gradePerUnit[i]);
+                    }
+                    if (gradeList[i] == "E" || gradeList[i] == "e") {
+                        gradePerUnit[i] = parseInt(unitList['unit-' + i]) * 1;
+                        console.log(gradePerUnit[i]);
+                    }
+                    if (gradeList[i] == "F" || gradeList[i] == "f") {
+                        gradePerUnit[i] = parseInt(unitList['unit-' + i]) * 0;
+                        console.log(gradePerUnit[i]);
+                    }
+                }
+            }
+
+            function cgpaCalc(rowNumber) {
+                // total grade per unit
+                if ($(".grade-" + rowNumber).val() == "A" || $(".grade-" + rowNumber).val() == "a") {
+                    gradeList["unit-" + rowNumber] = ($(".unit-" + rowNumber).val()) * 5;
+                }
+                if ($(".grade-" + rowNumber).val() == "B" || $(".grade-" + rowNumber).val() == "b") {
+                    gradeList["unit-" + rowNumber] = ($(".unit-" + rowNumber).val()) * 4;
+                }
+                if ($(".grade-" + rowNumber).val() == "C" || $(".grade-" + rowNumber).val() == "c") {
+                    gradeList["unit-" + rowNumber] = ($(".unit-" + rowNumber).val()) * 3;
+                }
+                if ($(".grade-" + rowNumber).val() == "D" || $(".grade-" + rowNumber).val() == "d") {
+                    gradeList["unit-" + rowNumber] = ($(".unit-" + rowNumber).val()) * 2;
+                }
+                if ($(".grade-" + rowNumber).val() == "E" || $(".grade-" + rowNumber).val() == "e") {
+                    gradeList["unit-" + rowNumber] = ($(".unit-" + rowNumber).val()) * 1;
+                }
+                if ($(".grade-" + rowNumber).val() == "F" || $(".grade-" + rowNumber).val() == "f") {
+                    gradeList["unit-" + rowNumber] = ($(".unit-" + rowNumber).val()) * 0;
+                }
+
+                // total credit unit
+                let totalUnits;
+                for (let i = 1; i <= rowNumber; i++) {
+                    totalUnits += ($(".unit-" + rowNumber).val());
+                    // console.log(totalUnits)
+                }
+                // sum total grade per unit
+                console.log(gradeList);
+                console.log(gradeList['unit-1']);
+                var totalGpu
+                for (let i = 0; i < gradeList.length; i++) {
+                    totalGpu += gradeList[i];
+                }
+                var cgpa = totalGpu / totalUnits
+                var results = "<h1>Your <b>CGPA = " + cgpa + "</b> </h1>";
+                var display = $("<result></result>").html(results);
+                $("form").after(display);
+                
+            }
+            
+            $("document").ready(console.log(gradeList))
+
+            function master(work, rowNumber) {
+                if (work == "course") {
+                    newCourse(rowNumber);
+                }
+                if (work == "unit") {
+                    newUnit(rowNumber);
+                }
+                if (work == "grade") {
+                    newGrade(rowNumber);
+                    gradePerUnitCalc(unitList, gradeList)
+                    if (cgpaCalc(gradePerUnit, unitList)) {
+                        var results = "<h1>Your <b>CGPA = " + cgpaCalc(gradePerUnit, unitList) + "</b> </h1>";
+                        var display = $("<result></result>").html(results);
+                        $("form").after(display);
+                    }
+                }
+            }*/
+</script>
+
+</html>
+
+<!-- max credit unnit foreach course-->
+<!-- max grade mark -->
