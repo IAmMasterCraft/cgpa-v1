@@ -220,10 +220,10 @@ if (!empty($sn) && !empty($batch) && !empty($semester) && !empty($course) && !em
         </tfoot>
         <tbody id="table-body">
             <?php
-            $totalGradeByUnit = "";
-            $totalUnit = "";
+            $totalGradeByUnit = 0;
+            $totalUnit = 0;
             $i = 1;
-            while ($i < sizeof($sn)) {
+            while ($i <= sizeof($sn)) {
                 ?>
                 <tr>
                     <td><?php echo $i; ?></td>
@@ -250,28 +250,16 @@ if (!empty($sn) && !empty($batch) && !empty($semester) && !empty($course) && !em
                     ?>"></td>
                     <td><?php
                     if (!array_key_exists($i, $grade)) {$grade[$i] = "UNKNOWN";}
-                    switch ($grade[$i]) {
-                        case "A":
-                            $gradeUnit = 5 * (int)$units[$course[$i]];
-                        break;
-                        case "B":
-                            $gradeUnit = 4 * (int)$units[$course[$i]];
-                        break;
-                        case "C":
-                            $gradeUnit = 3 * (int)$units[$course[$i]];
-                        break;
-                        case "D":
-                            $gradeUnit = 2 * (int)$units[$course[$i]];
-                        break;
-                        case "E":
-                            $gradeUnit = 1 * (int)$units[$course[$i]];
-                        break;
-                        case "F":
-                            $gradeUnit = 0 * (int)$units[$course[$i]];
-                        break;
-                    }
-                    $totalGradeByUnit .= $gradeUnit;
+                    
                     echo $grade[$i];
+                    if (trim($grade[$i]) == "A" && is_numeric($units[$course[$i]])) {$gradeUnit = 5 * $units[$course[$i]];}
+                    if (trim($grade[$i]) == "B" && is_numeric($units[$course[$i]])) {$gradeUnit = 4 * $units[$course[$i]];}
+                    if (trim($grade[$i]) == "C" && is_numeric($units[$course[$i]])) {$gradeUnit = 3 * $units[$course[$i]];}
+                    if (trim($grade[$i]) == "D" && is_numeric($units[$course[$i]])) {$gradeUnit = 2 * $units[$course[$i]];}
+                    if (trim($grade[$i]) == "E" && is_numeric($units[$course[$i]])) {$gradeUnit = 1 * $units[$course[$i]];}
+                    if (trim($grade[$i]) == "F" && is_numeric($units[$course[$i]])) {$gradeUnit = 0 * $units[$course[$i]];}
+                    $totalGradeByUnit += $gradeUnit;
+                    echo $gradeUnit;
                     ?></td>
                     <!-- <td><?php echo $i; ?></td> -->
                     <td><?php echo $i; ?></td>
